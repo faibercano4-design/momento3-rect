@@ -1,0 +1,12 @@
+import { useEffect, useState } from 'react';
+import { useFavorites } from '../context/FavoritesContext';
+import api from '../services/api';
+export default function Catalogo() {
+ const [busqueda,setBusqueda]=useState(''); const [productos,setProductos]=useState([]); const [nombre,setNombre]=useState(''); const [categoria,setCategoria]=useState('Deportes'); const [error,setError]=useState(''); const {favorites,toggleFavorite}=useFavorites();
+ async function cargar(){try{const {data}=await api.get('/productos');setProductos(data);}catch{setError('No se pudo conectar con el backend. Comprueba que el servidor esté encendido y MongoDB conectado.');}}
+ useEffect(()=>{cargar();},[]);
+ async function agregar(e){e.preventDefault();try{await api.post('/productos',{nombre,categoria});setNombre('');setCategoria('Deportes');setError('');await cargar();}catch(err){setError(err.response?.data?.mensaje||'No se pudo guardar el producto.');}}
+ async function eliminar(id){try{await api.delete(`/productos/${id}`);await cargar();}catch{setError('No se pudo eliminar el producto.');}}
+ const filtrados=productos.filter(p=>p.nombre.toLowerCase().includes(busqueda.toLowerCase()));
+ return <section><h1>Catálogo deportivo</h1><p>Los productos se consultan desde la API conectada a MongoDB.</p><input aria-label="Buscar producto" placeholder="Buscar producto..." value={busqueda} onChange={e=>setBusqueda(e.target.value)}/><form className="product-form" onSubmit={agregar}><h2>Agregar producto</h2><input aria-label="Nombre del producto" placeholder="Nombre del producto" value={nombre} onChange={e=>setNombre(e.target.value)} required/><select aria-label="Categoría" value={categoria} onChange={e=>setCategoria(e.target.value)}><option>Deportes</option><option>Ropa</option><option>Calzado</option><option>Accesorios</option></select><button type="submit">Guardar producto</button></form>{error&&<p role="alert">{error}</p>}<div className="product-grid">{filtrados.map(p=><article className="product-card" key={p._id||p.id}><h2>{p.nombre}</h2><p>Categoría: {p.categoria}</p><button onClick={()=>toggleFavorite({id:p._id||p.id,nombre:p.nombre,categoria:p.categoria})}>{favorites.some(f=>f.id===(p._id||p.id))?'Quitar de favoritos':'Agregar a favoritos'}</button><button className="danger" onClick={()=>eliminar(p._id||p.id)}>Eliminar</button></article>)}</div>{!filtrados.length&&!error&&<p>No hay productos para mostrar. Puedes agregar uno arriba.</p>}</section>;
+}

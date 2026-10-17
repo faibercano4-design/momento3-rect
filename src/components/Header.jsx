@@ -1,0 +1,4 @@
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useFavorites } from '../context/FavoritesContext';
+import { useAuth } from '../context/AuthContext';
+export default function Header(){const {favorites}=useFavorites();const {user,logout}=useAuth();const navigate=useNavigate();function salir(){logout();navigate('/login',{replace:true});}return <header className="main-header"><div className="header-container"><h1 className="header-title">SantiDev Project</h1><span>Hola, {user?.name||user?.email}</span></div><nav className="header-nav"><NavLink to="/" className="nav-btn">Inicio</NavLink><NavLink to="/catalogo" className="nav-btn">Catálogo</NavLink><NavLink to="/favoritos" className="nav-btn">Favoritos ({favorites.length})</NavLink><button className="nav-btn logout-btn" onClick={salir}>Cerrar sesión</button></nav></header>}
